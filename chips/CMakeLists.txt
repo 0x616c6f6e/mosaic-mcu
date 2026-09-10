@@ -1,0 +1,5 @@
+if(PLATFORM_CHIP STREQUAL "ch585")
+    add_subdirectory(wch/ch585)
+else()
+    message(FATAL_ERROR "Unsupported PLATFORM_CHIP: ${PLATFORM_CHIP}")
+endif()

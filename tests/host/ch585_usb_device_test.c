@@ -46,11 +46,15 @@ static void test_in_and_out_transfers(void)
     assert(chip_usb_device_submit_in(1, tx, sizeof(tx)) == CHIP_OK);
     assert(fake_uep_tx_len[1] == 64U);
     assert(memcmp(&endpoint_buffer[64], tx, 64) == 0);
+    assert((fake_uep_ctrl[1] & RB_UEP_AUTO_TOG) == 0U);
+    assert((fake_uep_ctrl[1] & RB_UEP_T_TOG) == 0U);
     fire_transfer((uint8_t)(UIS_TOKEN_IN | 1U), 0);
     assert(event_count == 0U);
+    assert((fake_uep_ctrl[1] & RB_UEP_T_TOG) != 0U);
     assert(fake_uep_tx_len[1] == 36U);
     assert(memcmp(&endpoint_buffer[64], &tx[64], 36) == 0);
     fire_transfer((uint8_t)(UIS_TOKEN_IN | 1U), 0);
+    assert((fake_uep_ctrl[1] & RB_UEP_T_TOG) == 0U);
     assert(event_count == 1U);
     assert(events[0].type == CHIP_USB_EVENT_TRANSFER_COMPLETE);
     assert(events[0].data.transfer.endpoint_address == 0x81U);
@@ -61,8 +65,10 @@ static void test_in_and_out_transfers(void)
     memcpy(endpoint_buffer, expected, 64);
     fire_transfer((uint8_t)(RB_UIS_TOG_OK | UIS_TOKEN_OUT | 1U), 64);
     assert(event_count == 0U);
+    assert((fake_uep_ctrl[1] & RB_UEP_R_TOG) != 0U);
     memcpy(endpoint_buffer, &expected[64], 36);
     fire_transfer((uint8_t)(RB_UIS_TOG_OK | UIS_TOKEN_OUT | 1U), 36);
+    assert((fake_uep_ctrl[1] & RB_UEP_R_TOG) == 0U);
     assert(event_count == 1U);
     assert(events[0].data.transfer.endpoint_address == 0x01U);
     assert(events[0].data.transfer.transferred == sizeof(rx));

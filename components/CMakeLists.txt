@@ -1,4 +1,8 @@
 add_subdirectory(log)
 add_subdirectory(json)
+add_subdirectory(spi_flash)
+add_subdirectory(littlefs)
+add_subdirectory(fatfs)
+add_subdirectory(ota)
 add_subdirectory(freertos)
 add_subdirectory(tinyusb)

@@ -17,6 +17,7 @@ chip_status_t demo_log_init(void);
 chip_status_t demo_log_init_with_timestamp(platform_log_timestamp_t timestamp,
                                            void *context);
 chip_status_t demo_i2c_pins_init(void);
+chip_status_t demo_spi_flash_pins_init(void);
 
 void demo_halt(void);
 

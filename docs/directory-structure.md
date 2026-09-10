@@ -41,6 +41,9 @@ mosaic-mcu/
 │       └── sdk/                        # 原厂快照，原则上不修改
 ├── components/                        # 跨应用复用且与具体业务无关的组件
 │   ├── log/                            # 分级日志、格式化与可注入输出 backend
+│   ├── spi_flash/                      # 标准 JEDEC SPI NOR Flash 驱动
+│   ├── littlefs/                       # littlefs 上游源码和平台构建入口
+│   ├── fatfs/                          # FatFs 上游源码和平台构建入口
 │   ├── json/                           # jsmn 零分配 JSON tokenizer
 │   ├── freertos/                       # FreeRTOS 上游内核和芯片 portable layer
 │   └── tinyusb/
@@ -140,6 +143,9 @@ HID 报告和组合键均属于 `apps/keyboard/`。如果某个模块后来被
 | `chips/wch/ch585/port/src/` | `ch585_port` / `chip::selected` |
 | `components/log/` | `platform_log` / `platform::log` |
 | `components/json/` | `json_jsmn` / `platform::json` / `jsmn::jsmn` |
+| `components/spi_flash/` | `platform_spi_flash` / `platform::spi_flash` |
+| `components/littlefs/` | `platform_littlefs` / `platform::littlefs` |
+| `components/fatfs/` | `platform_fatfs` / `platform::fatfs` |
 | `components/freertos/` | `freertos_kernel` / `platform::freertos` |
 | `boards/<board>/` | `board_<board>` |
 | `apps/<application>/` | 最终 ELF target |

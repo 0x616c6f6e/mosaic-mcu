@@ -11,6 +11,9 @@
 | `ch585_demo_uart_echo` | UART0 轮询收发 | 115200 8N1 回显输入字节 |
 | `ch585_demo_gpio_irq` | GPIO 中断和 UART | PA8 下降沿翻转 PB8 并输出计数 |
 | `ch585_demo_i2c_scan` | I2C 主机探测 | 每 2 秒通过 UART 输出 0x08-0x77 的响应地址 |
+| `ch585_demo_spi_flash` | SPI NOR Flash | 输出 JEDEC ID，并验证末尾扇区的擦除、写入和回读 |
+| `ch585_demo_spi_flash_littlefs` | SPI NOR + littlefs | 挂载或格式化文件系统，并持久化启动计数 |
+| `ch585_demo_spi_flash_fatfs` | SPI NOR + FatFs | 挂载或格式化 FAT 卷，并持久化启动计数 |
 | `ch585_demo_usb_hid` | USBFS Device | 枚举为 Boot Keyboard，周期发送按下/释放 `A` |
 | `ch585_demo_tinyusb_hid` | TinyUSB + USBFS Device | 由 TinyUSB 枚举并周期发送按下/释放 `A` |
 | `ch585_demo_ble_peripheral` | BLE Peripheral + UART | 广播为 `CH585 Demo`，允许连接并输出连接状态 |
@@ -30,9 +33,27 @@ USB HID 中的 VID/PID 仅用于本地开发验证，不得直接用于正式产
 | UART0 RX | PB4 |
 | I2C SCL | PB13 |
 | I2C SDA | PB12 |
+| SPI Flash CS | PA3 |
+| SPI1 SCK | PA0 |
+| SPI1 MOSI | PA1 |
+| SPI1 MISO | PA2 |
 
 不同开发板在烧录前应修改 `common/demo_board.h` 或通过编译宏覆盖这些值。I2C 建议使用外部
 上拉电阻。GPIO IRQ demo 没有实现按键消抖，因此一次操作可能产生多次计数。
+
+SPI Flash demo 默认按 2 MiB 容量、256 字节页和 4 KiB 扇区配置。它会擦除并改写最后一个
+扇区，已有数据将丢失；写测试前会核对 JEDEC 容量码。器件参数或测试地址不同时必须覆盖
+对应的 `DEMO_SPI_FLASH_*` 宏。
+只读取 JEDEC ID 时可设置 `DEMO_SPI_FLASH_ENABLE_WRITE_TEST=0`。
+
+SPI Flash + littlefs demo 默认将整颗 Flash 用作文件系统。首次运行会格式化 Flash，已有数据
+将丢失；后续启动会挂载已有文件系统，更新 `boot_count` 文件并通过 UART 输出计数。分区范围
+可通过 `DEMO_LITTLEFS_OFFSET_BYTES` 和 `DEMO_LITTLEFS_SIZE_BYTES` 调整。
+
+SPI Flash + FatFs demo 默认也会占用整颗 Flash，首次运行会格式化为 FAT 卷，后续更新
+`BOOTCNT.BIN`。分区范围可通过 `DEMO_FATFS_OFFSET_BYTES` 和 `DEMO_FATFS_SIZE_BYTES` 调整。
+裸 NOR 上的 512 字节扇区写入通过 4 KiB 读改擦写实现，仅适合验证；它没有 FTL、磨损均衡
+或掉电原子性，产品存储应优先使用 littlefs 或增加专用 FTL。
 
 ## 构建
 
@@ -48,6 +69,9 @@ cmake --build build
 
 ```sh
 cmake --build build --target ch585_demo_blinky
+cmake --build build --target ch585_demo_spi_flash
+cmake --build build --target ch585_demo_spi_flash_littlefs
+cmake --build build --target ch585_demo_spi_flash_fatfs
 cmake --build build --target ch585_demo_freertos_tasks
 cmake --build build --target ch585_demo_freertos_usb_ble
 ```
@@ -73,6 +97,9 @@ USB 初始化、挂载、BLE 和 HID 通知状态。该 demo 使用实验性 Fre
 ```sh
 cmake --build build --target wchisp_info
 cmake --build build --target flash_ch585_demo_blinky
+cmake --build build --target flash_ch585_demo_spi_flash
+cmake --build build --target flash_ch585_demo_spi_flash_littlefs
+cmake --build build --target flash_ch585_demo_spi_flash_fatfs
 cmake --build build --target flash_ch585_demo_ble_peripheral
 cmake --build build --target flash_ch585_demo_freertos_tasks
 cmake --build build --target flash_ch585_demo_freertos_usb_ble

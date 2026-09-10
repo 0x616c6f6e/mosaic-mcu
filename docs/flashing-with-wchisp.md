@@ -53,6 +53,9 @@ cmake --build build --target flash_ch585_demo_blinky
 cmake --build build --target flash_ch585_demo_uart_echo
 cmake --build build --target flash_ch585_demo_gpio_irq
 cmake --build build --target flash_ch585_demo_i2c_scan
+cmake --build build --target flash_ch585_demo_spi_flash
+cmake --build build --target flash_ch585_demo_spi_flash_littlefs
+cmake --build build --target flash_ch585_demo_spi_flash_fatfs
 cmake --build build --target flash_ch585_demo_usb_hid
 cmake --build build --target flash_ch585_demo_tinyusb_hid
 ```

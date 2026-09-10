@@ -27,6 +27,9 @@
 - [x] 增加与芯片无关的分级 LOG API 和 CH585 UART backend
 - [x] 接入 jsmn 1.1.0 零分配 JSON tokenizer
 - [x] 接入 FreeRTOS-Kernel 11.3.1 和 CH585 QingKe 任务调度 port
+- [x] 增加标准 JEDEC SPI NOR Flash 读、写、擦除组件
+- [x] 接入 littlefs 2.11.3，并增加 SPI NOR 持久化示例
+- [x] 接入 FatFs R0.16，并增加 SPI NOR 块设备示例
 - [x] 增加 FreeRTOS + TinyUSB HID + BLE Peripheral 组合验证固件
 - [x] 为组合固件增加标准 BLE HID Keyboard Report/Boot Protocol 服务
 - [x] 使用仓库内 WCH GCC12 完成交叉编译和完整链接

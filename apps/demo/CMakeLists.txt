@@ -25,6 +25,18 @@ add_ch585_demo(usb_hid usb_hid/main.c)
 add_ch585_demo(tinyusb_hid tinyusb_hid/main.c)
 add_ch585_demo(json_parse json_parse/main.c)
 target_link_libraries(ch585_demo_json_parse PRIVATE platform::json)
+add_ch585_demo(spi_flash spi_flash/main.c)
+target_link_libraries(ch585_demo_spi_flash PRIVATE platform::spi_flash)
+add_ch585_demo(spi_flash_littlefs spi_flash_littlefs/main.c)
+target_link_libraries(ch585_demo_spi_flash_littlefs PRIVATE
+    platform::littlefs
+    platform::spi_flash
+)
+add_ch585_demo(spi_flash_fatfs spi_flash_fatfs/main.c)
+target_link_libraries(ch585_demo_spi_flash_fatfs PRIVATE
+    platform::fatfs
+    platform::spi_flash
+)
 target_sources(ch585_demo_tinyusb_hid PRIVATE tinyusb_hid/usb_descriptors.c)
 add_tinyusb_hid_device(ch585_demo_tinyusb_hid
     ${CMAKE_CURRENT_SOURCE_DIR}/tinyusb_hid)

@@ -5,6 +5,9 @@
 #include "CH58x_common.h"
 #include "ch585_internal.h"
 
+#define CH585_SPI_FIFO_DEPTH       UINT8_C(8)
+#define CH585_SPI_MAX_TRANSFER     UINT16_C(0x0FFF)
+
 static uint8_t initialized_spis;
 
 static bool spi_valid(chip_spi_t spi)
@@ -12,21 +15,40 @@ static bool spi_valid(chip_spi_t spi)
     return (spi >= CHIP_SPI_0) && (spi < CHIP_SPI_COUNT);
 }
 
-static bool spi_ready(chip_spi_t spi)
+static bool spi_transfer_complete(chip_spi_t spi)
 {
-    return (spi == CHIP_SPI_0) ? (R8_SPI0_FIFO_COUNT == 0U) :
-                                (R8_SPI1_FIFO_COUNT == 0U);
+    return (((spi == CHIP_SPI_0) ? R8_SPI0_INT_FLAG : R8_SPI1_INT_FLAG) &
+            RB_SPI_FREE) != 0U;
 }
 
-static void spi_prepare_byte(chip_spi_t spi)
+static bool spi_count_complete(chip_spi_t spi)
+{
+    return (((spi == CHIP_SPI_0) ? R8_SPI0_INT_FLAG : R8_SPI1_INT_FLAG) &
+            RB_SPI_IF_CNT_END) != 0U;
+}
+
+static uint8_t spi_fifo_count(chip_spi_t spi)
+{
+    return (spi == CHIP_SPI_0) ? R8_SPI0_FIFO_COUNT : R8_SPI1_FIFO_COUNT;
+}
+
+static void spi_begin(chip_spi_t spi, bool receive, uint16_t count)
 {
     if (spi == CHIP_SPI_0) {
-        R8_SPI0_CTRL_MOD &= (uint8_t)~RB_SPI_FIFO_DIR;
-        R16_SPI0_TOTAL_CNT = 1;
+        if (receive) {
+            R8_SPI0_CTRL_MOD |= RB_SPI_FIFO_DIR;
+        } else {
+            R8_SPI0_CTRL_MOD &= (uint8_t)~RB_SPI_FIFO_DIR;
+        }
+        R16_SPI0_TOTAL_CNT = count;
         R8_SPI0_INT_FLAG = RB_SPI_IF_CNT_END;
     } else {
-        R8_SPI1_CTRL_MOD &= (uint8_t)~RB_SPI_FIFO_DIR;
-        R16_SPI1_TOTAL_CNT = 1;
+        if (receive) {
+            R8_SPI1_CTRL_MOD |= RB_SPI_FIFO_DIR;
+        } else {
+            R8_SPI1_CTRL_MOD &= (uint8_t)~RB_SPI_FIFO_DIR;
+        }
+        R16_SPI1_TOTAL_CNT = count;
         R8_SPI1_INT_FLAG = RB_SPI_IF_CNT_END;
     }
 }
@@ -40,17 +62,108 @@ static void spi_write_fifo(chip_spi_t spi, uint8_t value)
     }
 }
 
-static uint8_t spi_read_result(chip_spi_t spi)
+static uint8_t spi_read_fifo(chip_spi_t spi)
+{
+    return (spi == CHIP_SPI_0) ? R8_SPI0_FIFO : R8_SPI1_FIFO;
+}
+
+static uint8_t spi_read_buffer(chip_spi_t spi)
 {
     return (spi == CHIP_SPI_0) ? R8_SPI0_BUFFER : R8_SPI1_BUFFER;
 }
 
-static chip_status_t spi_wait_ready(chip_spi_t spi, uint64_t started_at, uint32_t timeout_us)
+static chip_status_t spi_wait_complete(chip_spi_t spi, uint64_t started_at,
+                                       uint32_t timeout_us)
 {
-    while (!spi_ready(spi)) {
+    while (!spi_transfer_complete(spi)) {
         if (ch585_timeout_expired(started_at, timeout_us)) {
             return CHIP_ERROR_TIMEOUT;
         }
+    }
+    return CHIP_OK;
+}
+
+static chip_status_t spi_wait_count_complete(chip_spi_t spi,
+                                              uint64_t started_at,
+                                              uint32_t timeout_us)
+{
+    while (!spi_count_complete(spi)) {
+        if (ch585_timeout_expired(started_at, timeout_us)) {
+            return CHIP_ERROR_TIMEOUT;
+        }
+    }
+    return CHIP_OK;
+}
+
+static chip_status_t spi_transmit(chip_spi_t spi, const uint8_t *data,
+                                  size_t size, uint64_t started_at,
+                                  uint32_t timeout_us)
+{
+    while (size > 0U) {
+        uint16_t count = (size > CH585_SPI_MAX_TRANSFER) ?
+                         CH585_SPI_MAX_TRANSFER : (uint16_t)size;
+        uint16_t written = 0U;
+
+        spi_begin(spi, false, count);
+        while (written < count) {
+            if (spi_fifo_count(spi) < CH585_SPI_FIFO_DEPTH) {
+                spi_write_fifo(spi, data[written]);
+                ++written;
+            } else if (ch585_timeout_expired(started_at, timeout_us)) {
+                return CHIP_ERROR_TIMEOUT;
+            }
+        }
+        if (spi_wait_count_complete(spi, started_at, timeout_us) != CHIP_OK) {
+            return CHIP_ERROR_TIMEOUT;
+        }
+        data += count;
+        size -= count;
+    }
+    return CHIP_OK;
+}
+
+static chip_status_t spi_receive(chip_spi_t spi, uint8_t *data, size_t size,
+                                 uint64_t started_at, uint32_t timeout_us)
+{
+    while (size > 0U) {
+        uint16_t count = (size > CH585_SPI_MAX_TRANSFER) ?
+                         CH585_SPI_MAX_TRANSFER : (uint16_t)size;
+        uint16_t received = 0U;
+
+        spi_begin(spi, true, count);
+        while (received < count) {
+            if (spi_fifo_count(spi) != 0U) {
+                data[received] = spi_read_fifo(spi);
+                ++received;
+            } else if (ch585_timeout_expired(started_at, timeout_us)) {
+                return CHIP_ERROR_TIMEOUT;
+            }
+        }
+        if (spi_wait_count_complete(spi, started_at, timeout_us) != CHIP_OK) {
+            return CHIP_ERROR_TIMEOUT;
+        }
+        data += count;
+        size -= count;
+    }
+    return CHIP_OK;
+}
+
+static chip_status_t spi_transceive(chip_spi_t spi, const uint8_t *tx_data,
+                                    uint8_t *rx_data, size_t size,
+                                    uint64_t started_at, uint32_t timeout_us)
+{
+    size_t index;
+
+    for (index = 0U; index < size; ++index) {
+        chip_status_t status;
+
+        spi_begin(spi, false, 1U);
+        spi_write_fifo(spi, tx_data[index]);
+        status = spi_wait_complete(spi, started_at, timeout_us);
+        if (status != CHIP_OK) {
+            return status;
+        }
+        rx_data[index] = spi_read_buffer(spi);
     }
     return CHIP_OK;
 }
@@ -123,7 +236,6 @@ chip_status_t chip_spi_transfer(chip_spi_t spi,
                                 uint32_t timeout_us)
 {
     uint64_t started_at;
-    size_t index;
     chip_status_t status;
 
     if (!spi_valid(spi) || ((tx_data == NULL) && (rx_data == NULL) && (size != 0U))) {
@@ -137,20 +249,12 @@ chip_status_t chip_spi_transfer(chip_spi_t spi,
         return status;
     }
 
-    for (index = 0; index < size; ++index) {
-        status = spi_wait_ready(spi, started_at, timeout_us);
-        if (status != CHIP_OK) {
-            return status;
-        }
-        spi_prepare_byte(spi);
-        spi_write_fifo(spi, (tx_data == NULL) ? UINT8_C(0xFF) : tx_data[index]);
-        status = spi_wait_ready(spi, started_at, timeout_us);
-        if (status != CHIP_OK) {
-            return status;
-        }
-        if (rx_data != NULL) {
-            rx_data[index] = spi_read_result(spi);
-        }
+    if (tx_data == NULL) {
+        return spi_receive(spi, rx_data, size, started_at, timeout_us);
     }
-    return CHIP_OK;
+    if (rx_data == NULL) {
+        return spi_transmit(spi, tx_data, size, started_at, timeout_us);
+    }
+    return spi_transceive(spi, tx_data, rx_data, size, started_at,
+                          timeout_us);
 }

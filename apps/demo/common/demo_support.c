@@ -125,6 +125,43 @@ chip_status_t demo_i2c_pins_init(void)
     return chip_gpio_init(DEMO_I2C_SDA_PIN, &config);
 }
 
+chip_status_t demo_spi_flash_pins_init(void)
+{
+    const chip_gpio_config_t output_config = {
+        .mode = CHIP_GPIO_OUTPUT_PUSH_PULL,
+        .pull = CHIP_GPIO_PULL_NONE,
+        .drive = CHIP_GPIO_DRIVE_HIGH,
+        .initial_level = false,
+    };
+    const chip_gpio_config_t input_config = {
+        .mode = CHIP_GPIO_INPUT,
+        .pull = CHIP_GPIO_PULL_NONE,
+        .drive = CHIP_GPIO_DRIVE_LOW,
+        .initial_level = false,
+    };
+    const chip_gpio_config_t cs_config = {
+        .mode = CHIP_GPIO_OUTPUT_PUSH_PULL,
+        .pull = CHIP_GPIO_PULL_NONE,
+        .drive = CHIP_GPIO_DRIVE_HIGH,
+        .initial_level = true,
+    };
+    chip_status_t status;
+
+    status = chip_gpio_init(DEMO_SPI_FLASH_CS_PIN, &cs_config);
+    if (status != CHIP_OK) {
+        return status;
+    }
+    status = chip_gpio_init(DEMO_SPI_FLASH_SCK_PIN, &output_config);
+    if (status != CHIP_OK) {
+        return status;
+    }
+    status = chip_gpio_init(DEMO_SPI_FLASH_MOSI_PIN, &output_config);
+    if (status != CHIP_OK) {
+        return status;
+    }
+    return chip_gpio_init(DEMO_SPI_FLASH_MISO_PIN, &input_config);
+}
+
 void demo_halt(void)
 {
     for (;;) {

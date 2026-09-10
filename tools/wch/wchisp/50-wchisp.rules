@@ -1,0 +1,2 @@
+# WCH USB ISP bootloader (1a86:55e0)
+SUBSYSTEM=="usb", ATTR{idVendor}=="1a86", ATTR{idProduct}=="55e0", MODE="0660", GROUP="plugdev", TAG+="uaccess"

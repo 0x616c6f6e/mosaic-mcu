@@ -1,0 +1,24 @@
+[submodule "components/fatfs/fatfs"]
+	path = components/fatfs/fatfs
+	url = https://github.com/abbrev/fatfs.git
+[submodule "components/freertos/FreeRTOS-Kernel"]
+	path = components/freertos/FreeRTOS-Kernel
+	url = https://github.com/FreeRTOS/FreeRTOS-Kernel.git
+[submodule "components/json/jsmn"]
+	path = components/json/jsmn
+	url = https://github.com/zserge/jsmn
+[submodule "components/littlefs/littlefs"]
+	path = components/littlefs/littlefs
+	url = https://github.com/littlefs-project/littlefs.git
+[submodule "components/lua/lua"]
+	path = components/lua/lua
+	url = https://github.com/lua/lua.git
+[submodule "components/mcuboot/mcuboot"]
+	path = components/mcuboot/mcuboot
+	url = https://github.com/mcu-tools/mcuboot.git
+[submodule "components/sqlite/sqlite"]
+	path = components/sqlite/sqlite
+	url = https://github.com/sqlite/sqlite.git
+[submodule "components/tinyusb/tinyusb"]
+	path = components/tinyusb/tinyusb
+	url = https://github.com/hathach/tinyusb.git

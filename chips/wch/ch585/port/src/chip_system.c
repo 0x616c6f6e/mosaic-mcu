@@ -159,3 +159,16 @@ void chip_system_reset(void)
     for (;;) {
     }
 }
+
+void chip_system_jump(uint32_t address)
+{
+    uint32_t interrupt_state;
+    void (*entry)(void) = (void (*)(void))(uintptr_t)address;
+
+    SYS_DisableAllIrq(&interrupt_state);
+    (void)interrupt_state;
+    __asm volatile("fence.i" ::: "memory");
+    entry();
+    for (;;) {
+    }
+}

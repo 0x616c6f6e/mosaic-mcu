@@ -2,7 +2,8 @@ ENTRY( _start )
 
 MEMORY
 {
-	FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 448K
+	FLASH (rx) : ORIGIN = DEFINED(__flash_origin) ? __flash_origin : 0x00000000,
+	             LENGTH = DEFINED(__flash_size) ? __flash_size : 448K
 	RAM (xrw) : ORIGIN = 0x20000000, LENGTH = 128K
  /*	RAM (xrw) : ORIGIN = 0x20000000, LENGTH = 96K */ /*CH584*/
 }
@@ -186,6 +187,5 @@ SECTIONS
 		PROVIDE(_eusrstack = . );
 	} >RAM  
 }
-
 
 

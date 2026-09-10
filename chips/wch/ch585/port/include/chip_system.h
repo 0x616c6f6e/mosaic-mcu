@@ -34,6 +34,7 @@ uint32_t chip_system_critical_enter(void);
 void chip_system_critical_exit(uint32_t state);
 
 void chip_system_reset(void);
+void chip_system_jump(uint32_t address);
 
 #ifdef __cplusplus
 }

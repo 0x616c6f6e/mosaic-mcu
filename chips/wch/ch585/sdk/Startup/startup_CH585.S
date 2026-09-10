@@ -211,7 +211,8 @@ __highcode_init:
 	li t0, 0x1
 	csrw 0xbc1, t0
 	
-    li t0, 0x88
+	/* Return to main in Machine Mode; chained IAP images reprogram CSRs. */
+	li t0, 0x1888
     csrw mstatus, t0
 	la t0, _vector_base
 

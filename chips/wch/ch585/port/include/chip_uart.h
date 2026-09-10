@@ -38,6 +38,7 @@ chip_status_t chip_uart_write(chip_uart_t uart,
                               size_t size,
                               size_t *written,
                               uint32_t timeout_us);
+chip_status_t chip_uart_flush(chip_uart_t uart, uint32_t timeout_us);
 chip_status_t chip_uart_read(chip_uart_t uart,
                              uint8_t *data,
                              size_t size,

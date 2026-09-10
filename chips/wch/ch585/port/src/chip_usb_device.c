@@ -216,10 +216,10 @@ static void usb_set_response(uint8_t endpoint, uint8_t direction, uint8_t respon
 
 static void usb_toggle_manual_endpoint(uint8_t endpoint, uint8_t direction)
 {
-    if ((endpoint == 0U) || (endpoint == 4U)) {
-        volatile uint8_t *control = usb_endpoint_control(endpoint);
-        *control ^= (direction == USB_DIRECTION_IN) ? RB_UEP_T_TOG : RB_UEP_R_TOG;
-    }
+    volatile uint8_t *control = usb_endpoint_control(endpoint);
+
+    /* CH58x AUTO_TOG loses synchronization during multi-packet transfers. */
+    *control ^= (direction == USB_DIRECTION_IN) ? RB_UEP_T_TOG : RB_UEP_R_TOG;
 }
 
 static void usb_emit(const chip_usb_event_t *event)
@@ -291,9 +291,6 @@ static void usb_reset_endpoints(void)
         volatile uint8_t *tx_length = usb_endpoint_tx_length(endpoint);
         *tx_length = 0;
         *control = (uint8_t)(UEP_R_RES_NAK | UEP_T_RES_NAK);
-        if ((endpoint != 0U) && (endpoint != 4U)) {
-            *control |= RB_UEP_AUTO_TOG;
-        }
     }
     usb_set_response(0, USB_DIRECTION_OUT, UEP_R_RES_ACK);
 }

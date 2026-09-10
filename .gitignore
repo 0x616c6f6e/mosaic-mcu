@@ -1,5 +1,6 @@
 build/
 build-host/
+build-*/
 
 # Locally installed host tool packages. Keep manifests and setup scripts only.
 tools/wch/Toolchain/*/

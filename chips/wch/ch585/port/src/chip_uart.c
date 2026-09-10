@@ -210,6 +210,29 @@ chip_status_t chip_uart_write(chip_uart_t uart,
     return (count == size) ? CHIP_OK : status;
 }
 
+chip_status_t chip_uart_flush(chip_uart_t uart, uint32_t timeout_us)
+{
+    uint64_t started_at;
+    chip_status_t status;
+
+    if (!uart_valid(uart)) {
+        return CHIP_ERROR_INVALID_ARG;
+    }
+    if ((initialized_uarts & (UINT8_C(1) << (uint8_t)uart)) == 0U) {
+        return CHIP_ERROR_NOT_READY;
+    }
+    status = ch585_timeout_start(timeout_us, &started_at);
+    if (status != CHIP_OK) {
+        return status;
+    }
+    while ((uart_line_status(uart) & STA_TXALL_EMP) == 0U) {
+        if (ch585_timeout_expired(started_at, timeout_us)) {
+            return CHIP_ERROR_TIMEOUT;
+        }
+    }
+    return CHIP_OK;
+}
+
 chip_status_t chip_uart_read(chip_uart_t uart,
                              uint8_t *data,
                              size_t size,

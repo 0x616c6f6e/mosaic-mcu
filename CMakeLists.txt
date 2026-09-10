@@ -17,3 +17,8 @@ option(PLATFORM_BUILD_DEMOS "Build hardware test applications" ON)
 if(PLATFORM_BUILD_DEMOS AND PLATFORM_CHIP STREQUAL "ch585")
     add_subdirectory(apps/demo)
 endif()
+
+option(PLATFORM_BUILD_OTA "Build OTA bootloader and USB disk application" ON)
+if(PLATFORM_BUILD_OTA AND PLATFORM_CHIP STREQUAL "ch585")
+    add_subdirectory(apps/ota)
+endif()

@@ -69,6 +69,7 @@ add_library(ch585_port STATIC
     port/src/chip_gpio.c
     port/src/chip_i2c.c
     port/src/chip_power.c
+    port/src/chip_program_flash.c
     port/src/chip_pwm.c
     port/src/chip_spi.c
     port/src/chip_system.c
@@ -154,6 +155,14 @@ function(configure_ch585_executable target)
         VERBATIM
     )
     add_wchisp_firmware_targets(${target})
+endfunction()
+
+function(configure_ch585_partitioned_executable target flash_origin flash_size)
+    configure_ch585_executable(${target})
+    target_link_options(${target} PRIVATE
+        -Wl,--defsym=__flash_origin=${flash_origin}
+        -Wl,--defsym=__flash_size=${flash_size}
+    )
 endfunction()
 
 function(configure_ch585_ble_executable target)

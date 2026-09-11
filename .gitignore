@@ -3,8 +3,8 @@ build-host/
 build-*/
 
 # Locally installed host tool packages. Keep manifests and setup scripts only.
-tools/wch/Toolchain/*/
-tools/wch/OpenOCD/OpenOCD/
+tools/wch/toolchain/*
+!tools/wch/toolchain/sub_manifest.json
 tools/wch/wchisp/bin/
 tools/wch/wchisp/.crates.toml
 tools/wch/wchisp/.crates2.json

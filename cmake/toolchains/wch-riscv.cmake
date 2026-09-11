@@ -5,7 +5,7 @@ set(CMAKE_TRY_COMPILE_PLATFORM_VARIABLES WCH_TOOLCHAIN_ROOT)
 
 get_filename_component(PLATFORM_ROOT "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE)
 set(WCH_TOOLCHAIN_ROOT
-    "${PLATFORM_ROOT}/tools/wch/Toolchain/RISC-V Embedded GCC12"
+    "${PLATFORM_ROOT}/tools/wch/toolchain/riscv-wch-elf-gcc-12.2.0"
     CACHE PATH "Root directory of the WCH RISC-V GCC12 toolchain"
 )
 

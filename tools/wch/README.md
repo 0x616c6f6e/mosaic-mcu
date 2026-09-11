@@ -8,7 +8,7 @@
 默认工具链安装路径：
 
 ```text
-tools/wch/Toolchain/RISC-V Embedded GCC12/
+tools/wch/toolchain/riscv-wch-elf-gcc-12.2.0/
 ```
 
 也可以在首次配置时指定外部安装：
@@ -19,7 +19,7 @@ cmake -S . -B build -G Ninja \
   -DWCH_TOOLCHAIN_ROOT=/opt/wch-gcc12
 ```
 
-WCH 工具包版本信息见 `Toolchain/sub_manifest.json` 和 `OpenOCD/sub_manifest.json`。
+WCH 工具包版本信息见 `toolchain/sub_manifest.json`。
 
 ## wchisp
 

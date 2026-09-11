@@ -1,5 +1,6 @@
 add_subdirectory(log)
 add_subdirectory(json)
+add_subdirectory(lua)
 add_subdirectory(spi_flash)
 add_subdirectory(littlefs)
 add_subdirectory(fatfs)

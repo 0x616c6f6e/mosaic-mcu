@@ -20,6 +20,8 @@
 | `ch585_demo_freertos_tasks` | FreeRTOS 任务调度 | PB8 每 250 ms 翻转，UART 每秒输出 tick 和计数 |
 | `ch585_demo_freertos_usb_ble` | FreeRTOS + TinyUSB + BLE | USB HID、BLE 广播和三个任务并行运行 |
 | `ch585_demo_json_parse` | jsmn JSON tokenizer | 解析 LED 配置、输出字段并按配置周期翻转 PB8 |
+| `ch585_demo_lua` | Lua 5.5 脚本运行时 | 执行内置脚本，通过 UART 输出结果并控制 PB8 |
+| `ch585_demo_lua_usb_fatfs` | Lua + USB MSC + FatFs | U 盘中的 `MAIN.LUA` 更新并弹出后自动执行 |
 
 USB HID 中的 VID/PID 仅用于本地开发验证，不得直接用于正式产品发布。
 
@@ -72,6 +74,8 @@ cmake --build build --target ch585_demo_blinky
 cmake --build build --target ch585_demo_spi_flash
 cmake --build build --target ch585_demo_spi_flash_littlefs
 cmake --build build --target ch585_demo_spi_flash_fatfs
+cmake --build build --target ch585_demo_lua
+cmake --build build --target ch585_demo_lua_usb_fatfs
 cmake --build build --target ch585_demo_freertos_tasks
 cmake --build build --target ch585_demo_freertos_usb_ble
 ```
@@ -90,6 +94,17 @@ USB 初始化、挂载、BLE 和 HID 通知状态。该 demo 使用实验性 Fre
 
 不需要 demo 时可在配置阶段指定 `-DPLATFORM_BUILD_DEMOS=OFF`。
 
+Lua demo 使用 48 KiB 的运行时内存上限，开放 base、table 和精简的 string、math 库，并
+注册 `mcu.led()`、`mcu.delay()`、`mcu.millis()`。脚本环境不开放 `io`、`os`、`package`、
+`debug`、`dofile`、`loadfile` 和 `load`。
+
+Lua USB FatFs demo 将 `DEMO_FATFS_*` 指定的外部 SPI Flash 分区作为 USB U 盘。分区没有
+有效 FAT 文件系统时会被格式化，原数据将丢失，并生成示例 `MAIN.LUA`。在电脑上修改脚本后
+应先安全弹出磁盘；设备会断开 USB、同步缓存、挂载 FatFs、执行脚本，再恢复 U 盘。未弹出
+时，写入停止 2 秒也会触发检查；`MAIN.LUA` 内容未改变则跳过执行。脚本最大 8 KiB，Lua
+堆上限 48 KiB，单次执行限时 5 秒。该裸 NOR 读改擦写后端仅用于演示，不具备掉电原子性
+和磨损均衡。
+
 ## 烧录
 
 让目标进入 USB ISP 模式后，使用对应 target 构建并烧录，例如：
@@ -100,6 +115,8 @@ cmake --build build --target flash_ch585_demo_blinky
 cmake --build build --target flash_ch585_demo_spi_flash
 cmake --build build --target flash_ch585_demo_spi_flash_littlefs
 cmake --build build --target flash_ch585_demo_spi_flash_fatfs
+cmake --build build --target flash_ch585_demo_lua
+cmake --build build --target flash_ch585_demo_lua_usb_fatfs
 cmake --build build --target flash_ch585_demo_ble_peripheral
 cmake --build build --target flash_ch585_demo_freertos_tasks
 cmake --build build --target flash_ch585_demo_freertos_usb_ble

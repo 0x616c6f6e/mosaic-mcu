@@ -1,0 +1,8 @@
+#include <firmware_version.h>
+
+const char keyboard_firmware_version[] = "@FIRMWARE_VERSION_C@";
+const char keyboard_firmware_build_type[] = "@FIRMWARE_BUILD_TYPE_C@";
+const char keyboard_firmware_build_time[] = "@FIRMWARE_BUILD_TIME_C@";
+const char keyboard_firmware_git_describe[] = "@FIRMWARE_GIT_DESCRIBE_C@";
+const char keyboard_firmware_git_hash[] = "@FIRMWARE_GIT_HASH_C@";
+const char keyboard_firmware_git_branch[] = "@FIRMWARE_GIT_BRANCH_C@";

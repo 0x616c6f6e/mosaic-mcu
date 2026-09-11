@@ -54,11 +54,12 @@ to the separate USBHS/USB2 pins PB12/PB13 will not enumerate with this firmware.
 | `board/` | Keyboard PCB resources, Flash layout, and UART logging |
 | `core/` | Matrix scan scheduling, debouncing, and Boot HID report generation |
 | `usb/` | Product USB descriptors, VID/PID, and TinyUSB configuration |
-| `cmake/` | Product firmware rules and factory-image orchestration |
 | `web/` | Browser-based WebUSB updater |
 
 Generic OTA image, storage, MSC, WebUSB, staging, and packaging code is in
 `components/ota/`. Keyboard behavior must not be added to that component.
+All product targets, source lists, partition settings, and packaging rules are
+kept in the top-level `CMakeLists.txt` in this directory.
 `application/keyboard_layout.c` is the product configuration point for row and
 column pins, scan polarity, timing, and HID bindings. Matrix positions use
 row-major order: `index = row * column_count + column`.
@@ -119,6 +120,11 @@ Flash.
 Set `-DKEYBOARD_FIRMWARE_VERSION=<number>` while configuring to populate the
 package version field. Version rollback is not rejected in this first
 implementation.
+
+The same version is embedded in both firmware images together with the CMake
+build type, build time, Git describe value, seven-character commit hash, and
+branch. The application and bootloader print these fields on UART at startup.
+Uncommitted source changes add a `-dirty` suffix to the Git describe value.
 
 ## WebUSB update
 

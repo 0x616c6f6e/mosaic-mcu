@@ -18,8 +18,6 @@ add_subdirectory(../../components/lua
     ${CMAKE_CURRENT_BINARY_DIR}/platform-lua)
 add_subdirectory(../../components/spi_flash
     ${CMAKE_CURRENT_BINARY_DIR}/platform-spi-flash)
-add_subdirectory(../../apps/keyboard/core
-    ${CMAKE_CURRENT_BINARY_DIR}/keyboard-core)
 
 add_executable(ch585_usb_device_test
     ch585_usb_device_test.c
@@ -194,8 +192,13 @@ target_compile_options(lua_runtime_test PRIVATE
 )
 add_test(NAME lua_runtime_test COMMAND lua_runtime_test)
 
-add_executable(keyboard_engine_test keyboard_engine_test.c)
-target_link_libraries(keyboard_engine_test PRIVATE keyboard::core)
+add_executable(keyboard_engine_test
+    keyboard_engine_test.c
+    ../../apps/keyboard/core/keyboard_engine.c
+)
+target_include_directories(keyboard_engine_test PRIVATE
+    ../../apps/keyboard/core
+)
 target_compile_options(keyboard_engine_test PRIVATE
     -Wall
     -Wextra

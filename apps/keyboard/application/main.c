@@ -16,7 +16,7 @@
 #include "keyboard_hid.h"
 #include "keyboard_log.h"
 #include "keyboard_usb_device.h"
-#include "build_info.h"
+#include <firmware_version.h>
 #include "ota_system_config.h"
 #include "ota_usb_msc.h"
 #include "ota_webusb.h"
@@ -209,9 +209,13 @@ int main(void)
         for (;;) {
         }
     }
-    LOG_INFO("ota", "application build=%s entry=0x%08lX",
-             MOSAIC_BUILD_TIMESTAMP,
+    LOG_INFO("app", "version=%s type=%s built=%s entry=0x%08lX",
+             keyboard_firmware_version, keyboard_firmware_build_type,
+             keyboard_firmware_build_time,
              (unsigned long)OTA_APPLICATION_ADDRESS);
+    LOG_INFO("app", "git=%s hash=%s branch=%s",
+             keyboard_firmware_git_describe, keyboard_firmware_git_hash,
+             keyboard_firmware_git_branch);
     (void)keyboard_log_flush();
     status = keyboard_board_init(&external_flash, &update_disk, disk_cache,
                                  sizeof(disk_cache));

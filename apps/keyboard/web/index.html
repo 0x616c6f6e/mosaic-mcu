@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CH585 WebUSB OTA</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <p class="eyebrow">Mosaic MCU</p>
+        <h1>CH585 WebUSB OTA</h1>
+      </div>
+      <span id="device-state" class="state" data-kind="idle">未连接</span>
+    </header>
+
+    <section class="workspace" aria-label="固件升级">
+      <div class="device-row">
+        <div>
+          <span class="label">USB 设备</span>
+          <strong id="device-name">Mosaic Keyboard</strong>
+        </div>
+        <button id="connect" type="button">连接设备</button>
+      </div>
+
+      <div class="tabs" role="tablist" aria-label="设备操作">
+        <button id="firmware-tab" class="tab active" type="button"
+                role="tab" aria-selected="true"
+                aria-controls="firmware-panel">固件升级</button>
+        <button id="config-tab" class="tab" type="button"
+                role="tab" aria-selected="false"
+                aria-controls="config-panel">设备配置</button>
+      </div>
+
+      <div id="firmware-panel" role="tabpanel" aria-labelledby="firmware-tab">
+        <label class="file-field" for="firmware">
+          <span class="label">OTA 固件包</span>
+          <input id="firmware" type="file" accept=".ota,application/octet-stream">
+        </label>
+
+        <div class="package-meta">
+          <span id="file-name">尚未选择文件</span>
+          <span id="file-size">0 B</span>
+        </div>
+
+        <div class="progress" role="progressbar" aria-valuemin="0"
+             aria-valuemax="100" aria-valuenow="0">
+          <div id="progress-bar"></div>
+        </div>
+
+        <div class="actions">
+          <button id="upgrade" class="primary" type="button" disabled>开始升级</button>
+          <span id="progress-text">等待连接设备和选择固件</span>
+        </div>
+      </div>
+
+      <form id="config-panel" role="tabpanel" aria-labelledby="config-tab" hidden>
+        <div class="form-grid">
+          <label class="field" for="config-name">
+            <span class="label">设备名称</span>
+            <input id="config-name" type="text" maxlength="31" required
+                   pattern="[A-Za-z0-9 _.-]+" disabled>
+          </label>
+
+          <label class="field" for="config-log-level">
+            <span class="label">日志级别</span>
+            <select id="config-log-level" disabled>
+              <option value="debug">Debug</option>
+              <option value="info">Info</option>
+              <option value="warn">Warn</option>
+              <option value="error">Error</option>
+              <option value="none">None</option>
+            </select>
+          </label>
+
+          <label class="field" for="config-idle-timeout">
+            <span class="label">U 盘写入空闲时间 (ms)</span>
+            <input id="config-idle-timeout" type="number" min="500"
+                   max="30000" step="100" required disabled>
+          </label>
+
+          <label class="field" for="config-reboot-delay">
+            <span class="label">WebUSB 重启延迟 (ms)</span>
+            <input id="config-reboot-delay" type="number" min="100"
+                   max="5000" step="50" required disabled>
+          </label>
+        </div>
+
+        <label class="switch-row" for="config-disk-visible">
+          <strong>显示 USB 存储盘</strong>
+          <input id="config-disk-visible" type="checkbox" disabled>
+        </label>
+
+        <div class="config-actions">
+          <button id="save-config" class="primary" type="submit" disabled>保存配置</button>
+          <span id="config-status">连接设备后读取配置</span>
+        </div>
+      </form>
+    </section>
+
+    <section class="console" aria-label="传输日志">
+      <div class="console-title">
+        <span>传输日志</span>
+        <button id="clear-log" class="quiet" type="button">清空</button>
+      </div>
+      <pre id="log" aria-live="polite"></pre>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

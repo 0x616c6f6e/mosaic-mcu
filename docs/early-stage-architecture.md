@@ -106,7 +106,7 @@ application ELF
     └── libISP585.a
 ```
 
-CH585 使用仓库内 `tools/wch/Toolchain/RISC-V Embedded GCC12`。配置命令：
+CH585 使用仓库内 `tools/wch/toolchain/riscv-wch-elf-gcc-12.2.0`。配置命令：
 
 ```sh
 cmake -S . -B build -G Ninja \
@@ -172,4 +172,4 @@ USBFS Device 控制器已经由 `chip_usb_device` 独立封装，不依赖原厂
 2. 建立 `tests/contract/`，约束未来 SoC port 的源码兼容性。
 3. 按真实复用需求建立 `components/` 模块。
 4. 完成开发板冒烟测试。
-5. 创建 `apps/keyboard/`，在平台稳定接口之上实现键盘功能。
+5. 在已有 `apps/keyboard/` 产品骨架中实现矩阵扫描、消抖、键位映射和 HID 报告。

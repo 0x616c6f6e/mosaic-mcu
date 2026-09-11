@@ -39,17 +39,33 @@ endfunction()
 function(add_tinyusb_msc_device target config_directory)
     set(tinyusb_root ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/tinyusb)
     set(stack_target ${target}_tinyusb)
+    set(options HID)
+    cmake_parse_arguments(MSC "${options}" "" "" ${ARGN})
+
+    if(MSC_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR
+            "Unknown MSC arguments for ${target}: ${MSC_UNPARSED_ARGUMENTS}")
+    endif()
 
     if(NOT EXISTS ${tinyusb_root}/src/tusb.c)
         message(FATAL_ERROR "TinyUSB upstream source is missing from components/tinyusb/tinyusb")
+    endif()
+
+    set(class_sources
+        ${tinyusb_root}/src/class/msc/msc_device.c
+        ${tinyusb_root}/src/class/vendor/vendor_device.c
+    )
+    if(MSC_HID)
+        list(APPEND class_sources
+            ${tinyusb_root}/src/class/hid/hid_device.c
+        )
     endif()
 
     add_library(${stack_target} STATIC
         ${tinyusb_root}/src/tusb.c
         ${tinyusb_root}/src/common/tusb_fifo.c
         ${tinyusb_root}/src/device/usbd.c
-        ${tinyusb_root}/src/class/msc/msc_device.c
-        ${tinyusb_root}/src/class/vendor/vendor_device.c
+        ${class_sources}
         ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/dcd_chip.c
     )
     target_include_directories(${stack_target}

@@ -1,0 +1,8 @@
+{
+  "schema_version": 2,
+  "device_name": "Mosaic Keyboard",
+  "usb_disk_visible": true,
+  "log_level": "debug",
+  "usb_idle_timeout_ms": 2000,
+  "webusb_reboot_delay_ms": 500
+}

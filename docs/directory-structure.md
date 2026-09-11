@@ -9,9 +9,11 @@ mosaic-mcu/
 │   ├── demo/                          # 当前芯片的外设与组件验证程序
 │   └── keyboard/                      # 键盘应用
 │       ├── CMakeLists.txt
-│       ├── include/
-│       ├── src/
-│       └── components/                # 矩阵、消抖、键位、HID 等专属模块
+│       ├── application/               # 产品主程序与配置
+│       ├── board/                     # PCB 资源与 Flash 布局
+│       ├── bootloader/                # 产品恢复固件
+│       ├── usb/                       # 产品描述符与 TinyUSB 配置
+│       └── web/                       # 产品 WebUSB 页面
 ├── boards/                            # PCB/开发板资源描述
 │   └── <board_name>/
 │       ├── CMakeLists.txt
@@ -45,6 +47,8 @@ mosaic-mcu/
 │   ├── littlefs/                       # littlefs 上游源码和平台构建入口
 │   ├── fatfs/                          # FatFs 上游源码和平台构建入口
 │   ├── json/                           # jsmn 零分配 JSON tokenizer
+│   ├── lua/                            # Lua 运行时、嵌入式配置和平台封装
+│   ├── ota/                            # 镜像、staging、MSC/WebUSB 升级机制
 │   ├── freertos/                       # FreeRTOS 上游内核和芯片 portable layer
 │   └── tinyusb/
 │       ├── CMakeLists.txt              # 平台构建入口
@@ -57,8 +61,7 @@ mosaic-mcu/
 │   └── fakes/                         # 主机侧替身
 ├── tools/
 │   └── wch/
-│       ├── Toolchain/                  # WCH GCC8/GCC12/GCC15
-│       └── OpenOCD/                    # WCH OpenOCD
+│       └── toolchain/                  # WCH GCC/OpenOCD 版本清单与本机安装目录
 └── docs/
 ```
 
@@ -146,6 +149,7 @@ HID 报告和组合键均属于 `apps/keyboard/`。如果某个模块后来被
 | `components/spi_flash/` | `platform_spi_flash` / `platform::spi_flash` |
 | `components/littlefs/` | `platform_littlefs` / `platform::littlefs` |
 | `components/fatfs/` | `platform_fatfs` / `platform::fatfs` |
+| `components/ota/` | `platform_ota` / `platform::ota` |
 | `components/freertos/` | `freertos_kernel` / `platform::freertos` |
 | `boards/<board>/` | `board_<board>` |
 | `apps/<application>/` | 最终 ELF target |

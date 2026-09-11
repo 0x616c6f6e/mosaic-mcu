@@ -17,6 +17,7 @@
 - [目录结构与职责](docs/directory-structure.md)
 - [CH585 Port 使用说明](chips/wch/ch585/port/README.md)
 - [CH585 Demos](apps/demo/README.md)
+- [Keyboard product firmware](apps/keyboard/README.md)
 - [使用 wchisp 烧录固件](docs/flashing-with-wchisp.md)
 
 ## 当前状态
@@ -26,6 +27,7 @@
 - [x] 接入 TinyUSB 0.21 Device/HID 组件和 Chip USB DCD adapter
 - [x] 增加与芯片无关的分级 LOG API 和 CH585 UART backend
 - [x] 接入 jsmn 1.1.0 零分配 JSON tokenizer
+- [x] 接入 Lua 5.5.1 嵌入式脚本运行时和受限内存分配器
 - [x] 接入 FreeRTOS-Kernel 11.3.1 和 CH585 QingKe 任务调度 port
 - [x] 增加标准 JEDEC SPI NOR Flash 读、写、擦除组件
 - [x] 接入 littlefs 2.11.3，并增加 SPI NOR 持久化示例
@@ -36,6 +38,7 @@
 - [ ] 在 CH585 开发板运行外设契约测试
 - [ ] 建立跨芯片 API 契约测试
 - [ ] 增加第一个板级目标
-- [ ] 在 `apps/keyboard/` 实现键盘应用
+- [x] 建立 `apps/keyboard/` 产品固件、恢复 bootloader 和通用 OTA 集成
+- [ ] 根据实际 PCB 矩阵实现扫描、消抖、键位映射和 HID 报告
 
 平台层不得包含键盘业务，也不得通过公共 API 传播 `CH58x_*.h`、寄存器宏或厂商类型。

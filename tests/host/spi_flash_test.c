@@ -8,7 +8,7 @@
 
 #include <chip_time.h>
 
-#define FAKE_FLASH_SIZE   512U
+#define FAKE_FLASH_SIZE   (512U * 1024U)
 #define FAKE_PAGE_SIZE    16U
 #define FAKE_SECTOR_SIZE 128U
 #define MAX_TRANSACTIONS 64U
@@ -35,6 +35,7 @@ static bool fake_busy_forever;
 static unsigned int fake_busy_reads;
 static uint64_t fake_now_us;
 static chip_status_t fake_next_transfer_status;
+static uint8_t fake_capacity_code;
 
 #define CHECK(condition)                                                       \
     do {                                                                       \
@@ -63,6 +64,7 @@ static void fake_reset(void)
     fake_busy_reads = 0U;
     fake_now_us = 0U;
     fake_next_transfer_status = CHIP_OK;
+    fake_capacity_code = UINT8_C(0x13);
 }
 
 static void fake_clear_transactions(void)
@@ -163,11 +165,12 @@ chip_status_t chip_spi_deinit(chip_spi_t spi)
 
 static uint8_t fake_response_byte(void)
 {
-    static const uint8_t jedec_id[] = {UINT8_C(0xEF), UINT8_C(0x40),
-                                       UINT8_C(0x13)};
-
     if ((fake_command == UINT8_C(0x9F)) && (fake_position <= 3U)) {
-        return jedec_id[fake_position - 1U];
+        static const uint8_t jedec_prefix[] = {UINT8_C(0xEF),
+                                               UINT8_C(0x40)};
+
+        return (fake_position <= 2U) ? jedec_prefix[fake_position - 1U] :
+                                       fake_capacity_code;
     }
     if (fake_command == UINT8_C(0x05)) {
         if (fake_busy_forever) {
@@ -254,7 +257,7 @@ static spi_flash_config_t test_config(void)
         .spi = CHIP_SPI_0,
         .cs_pin = CHIP_PIN(CHIP_GPIO_PORT_A, 12),
         .clock_hz = UINT32_C(8000000),
-        .capacity_bytes = FAKE_FLASH_SIZE,
+        .capacity_bytes = 0U,
         .page_size = FAKE_PAGE_SIZE,
         .sector_size = FAKE_SECTOR_SIZE,
         .transfer_timeout_us = UINT32_C(100),
@@ -360,6 +363,26 @@ static int test_errors_and_timeout(spi_flash_t *flash)
     return 0;
 }
 
+static int test_capacity_limits(void)
+{
+    spi_flash_t flash;
+    spi_flash_config_t config = test_config();
+
+    fake_reset();
+    fake_capacity_code = UINT8_C(0x18);
+    CHECK(spi_flash_init(&flash, &config) == CHIP_OK);
+    CHECK(flash.config.capacity_bytes == SPI_FLASH_MAX_CAPACITY_BYTES);
+    CHECK(spi_flash_deinit(&flash) == CHIP_OK);
+
+    fake_reset();
+    fake_capacity_code = UINT8_C(0x19);
+    CHECK(spi_flash_init(&flash, &config) == CHIP_ERROR_UNSUPPORTED);
+    CHECK(!flash.initialized);
+    CHECK(!fake_gpio_initialized);
+    CHECK(!fake_spi_initialized);
+    return 0;
+}
+
 int main(void)
 {
     spi_flash_t flash;
@@ -368,6 +391,7 @@ int main(void)
     fake_reset();
     CHECK(spi_flash_init(&flash, &config) == CHIP_OK);
     CHECK(flash.initialized);
+    CHECK(flash.config.capacity_bytes == FAKE_FLASH_SIZE);
     CHECK(fake_gpio_initialized);
     CHECK(fake_spi_initialized);
     CHECK(fake_cs_high);
@@ -382,6 +406,7 @@ int main(void)
     CHECK(!fake_gpio_initialized);
     CHECK(!fake_spi_initialized);
     CHECK(spi_flash_read_status(&flash, NULL) == CHIP_ERROR_INVALID_ARG);
+    CHECK(test_capacity_limits() == 0);
     puts("spi_flash_test: all tests passed");
     return 0;
 }

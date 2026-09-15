@@ -17,15 +17,23 @@
 
 static bool flash_config_valid(const spi_flash_config_t *config)
 {
+    bool capacity_valid;
+
+    if (config == NULL) {
+        return false;
+    }
+    capacity_valid = (config->capacity_bytes == 0U) ||
+                     ((config->sector_size != 0U) &&
+                      (config->capacity_bytes <=
+                       SPI_FLASH_MAX_CAPACITY_BYTES) &&
+                      (config->sector_size <= config->capacity_bytes) &&
+                      ((config->capacity_bytes % config->sector_size) == 0U));
     return (config != NULL) &&
            (config->spi >= CHIP_SPI_0) && (config->spi < CHIP_SPI_COUNT) &&
            (config->clock_hz != 0U) &&
-           (config->capacity_bytes != 0U) &&
-           (config->capacity_bytes <= SPI_FLASH_MAX_CAPACITY_BYTES) &&
            (config->page_size != 0U) &&
            (config->page_size <= config->sector_size) &&
-           (config->sector_size <= config->capacity_bytes) &&
-           ((config->capacity_bytes % config->sector_size) == 0U);
+           capacity_valid;
 }
 
 static bool flash_ready(const spi_flash_t *flash)
@@ -101,6 +109,33 @@ static chip_status_t flash_require_timer(uint32_t timeout_us)
     return CHIP_OK;
 }
 
+static chip_status_t flash_detect_capacity(spi_flash_t *flash)
+{
+    spi_flash_jedec_id_t id;
+    uint32_t capacity;
+    chip_status_t status = spi_flash_read_jedec_id(flash, &id);
+
+    if (status != CHIP_OK) {
+        return status;
+    }
+    if (((id.manufacturer == 0U) && (id.memory_type == 0U) &&
+         (id.capacity == 0U)) ||
+        ((id.manufacturer == UINT8_C(0xFF)) &&
+         (id.memory_type == UINT8_C(0xFF)) &&
+         (id.capacity == UINT8_C(0xFF))) ||
+        (id.capacity >= 32U)) {
+        return CHIP_ERROR_IO;
+    }
+    capacity = UINT32_C(1) << id.capacity;
+    if ((capacity > SPI_FLASH_MAX_CAPACITY_BYTES) ||
+        (capacity < flash->config.sector_size) ||
+        ((capacity % flash->config.sector_size) != 0U)) {
+        return CHIP_ERROR_UNSUPPORTED;
+    }
+    flash->config.capacity_bytes = capacity;
+    return CHIP_OK;
+}
+
 chip_status_t spi_flash_init(spi_flash_t *flash,
                              const spi_flash_config_t *config)
 {
@@ -111,6 +146,7 @@ chip_status_t spi_flash_init(spi_flash_t *flash,
         .initial_level = true,
     };
     chip_spi_config_t spi_config;
+    bool detect_capacity;
     chip_status_t status;
 
     if ((flash == NULL) || !flash_config_valid(config)) {
@@ -119,6 +155,7 @@ chip_status_t spi_flash_init(spi_flash_t *flash,
 
     memset(flash, 0, sizeof(*flash));
     flash->config = *config;
+    detect_capacity = config->capacity_bytes == 0U;
     status = chip_gpio_init(config->cs_pin, &gpio_config);
     if (status != CHIP_OK) {
         return status;
@@ -134,6 +171,15 @@ chip_status_t spi_flash_init(spi_flash_t *flash,
     }
 
     flash->initialized = true;
+    if (detect_capacity) {
+        status = flash_detect_capacity(flash);
+        if (status != CHIP_OK) {
+            flash->initialized = false;
+            (void)chip_spi_deinit(config->spi);
+            (void)chip_gpio_deinit(config->cs_pin);
+            return status;
+        }
+    }
     return CHIP_OK;
 }
 

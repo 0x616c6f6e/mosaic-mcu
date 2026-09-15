@@ -19,6 +19,7 @@ typedef struct {
     chip_spi_t spi;
     chip_pin_t cs_pin;
     uint32_t clock_hz;
+    /* Set to zero to detect the capacity from the JEDEC ID during init. */
     uint32_t capacity_bytes;
     uint32_t page_size;
     uint32_t sector_size;

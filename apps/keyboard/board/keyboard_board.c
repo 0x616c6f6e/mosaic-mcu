@@ -64,7 +64,7 @@ chip_status_t keyboard_board_init(spi_flash_t *flash, ota_spi_disk_t *disk,
         .spi = OTA_SPI_INSTANCE,
         .cs_pin = OTA_SPI_CS,
         .clock_hz = OTA_SPI_FLASH_CLOCK_HZ,
-        .capacity_bytes = OTA_SPI_FLASH_CAPACITY,
+        .capacity_bytes = 0U,
         .page_size = 256U,
         .sector_size = OTA_SPI_FLASH_SECTOR_SIZE,
         .transfer_timeout_us = OTA_SPI_TIMEOUT_US,
@@ -84,8 +84,14 @@ chip_status_t keyboard_board_init(spi_flash_t *flash, ota_spi_disk_t *disk,
         status = spi_flash_init(flash, &flash_config);
     }
     if (status == CHIP_OK) {
+        if (flash->config.capacity_bytes <= OTA_WEBUSB_STAGING_SIZE) {
+            status = CHIP_ERROR_UNSUPPORTED;
+        }
+    }
+    if (status == CHIP_OK) {
         status = ota_spi_disk_init(disk, flash, 0U,
-                                   OTA_MSC_FLASH_CAPACITY,
+                                   flash->config.capacity_bytes -
+                                       OTA_WEBUSB_STAGING_SIZE,
                                    disk_cache, disk_cache_size);
     }
     if (status == CHIP_OK) {
@@ -121,10 +127,18 @@ chip_status_t keyboard_board_probe_flash(spi_flash_t *flash,
 chip_status_t keyboard_board_init_staging(ota_staging_t *staging,
                                           spi_flash_t *flash)
 {
+    uint32_t metadata_offset;
+
+    if ((flash == NULL) || !flash->initialized ||
+        (flash->config.capacity_bytes <= OTA_WEBUSB_STAGING_SIZE)) {
+        return CHIP_ERROR_INVALID_ARG;
+    }
+    metadata_offset = flash->config.capacity_bytes -
+                      OTA_WEBUSB_STAGING_SIZE;
     const ota_staging_config_t config = {
         .flash = flash,
-        .metadata_offset = OTA_WEBUSB_METADATA_OFFSET,
-        .image_offset = OTA_WEBUSB_IMAGE_OFFSET,
+        .metadata_offset = metadata_offset,
+        .image_offset = metadata_offset + OTA_SPI_FLASH_SECTOR_SIZE,
         .image_capacity = OTA_WEBUSB_IMAGE_CAPACITY,
         .erase_size = OTA_SPI_FLASH_SECTOR_SIZE,
         .target_id = OTA_TARGET_ID,

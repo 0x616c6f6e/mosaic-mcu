@@ -5,7 +5,12 @@
 
 #include "keyboard_board.h"
 
-static uint8_t flash_memory[OTA_SPI_FLASH_CAPACITY];
+#define TEST_FLASH_CAPACITY UINT32_C(0x00800000)
+#define TEST_METADATA_OFFSET (TEST_FLASH_CAPACITY - OTA_WEBUSB_STAGING_SIZE)
+#define TEST_IMAGE_OFFSET \
+    (TEST_METADATA_OFFSET + OTA_SPI_FLASH_SECTOR_SIZE)
+
+static uint8_t flash_memory[TEST_FLASH_CAPACITY];
 
 #define CHECK(condition)                                                       \
     do {                                                                       \
@@ -73,15 +78,15 @@ int main(void)
     ota_image_header_t result_header;
     spi_flash_t flash = {
         .config = {
-            .capacity_bytes = OTA_SPI_FLASH_CAPACITY,
+            .capacity_bytes = TEST_FLASH_CAPACITY,
             .sector_size = OTA_SPI_FLASH_SECTOR_SIZE,
         },
         .initialized = true,
     };
     const ota_staging_config_t staging_config = {
         .flash = &flash,
-        .metadata_offset = OTA_WEBUSB_METADATA_OFFSET,
-        .image_offset = OTA_WEBUSB_IMAGE_OFFSET,
+        .metadata_offset = TEST_METADATA_OFFSET,
+        .image_offset = TEST_IMAGE_OFFSET,
         .image_capacity = OTA_WEBUSB_IMAGE_CAPACITY,
         .erase_size = OTA_SPI_FLASH_SECTOR_SIZE,
         .target_id = OTA_TARGET_ID,
@@ -105,9 +110,9 @@ int main(void)
     source_header.image_crc32 = ota_crc32(payload, sizeof(payload));
     source_header.header_crc32 = ota_crc32(
         &source_header, offsetof(ota_image_header_t, header_crc32));
-    memcpy(&flash_memory[OTA_WEBUSB_IMAGE_OFFSET], &source_header,
+    memcpy(&flash_memory[TEST_IMAGE_OFFSET], &source_header,
            sizeof(source_header));
-    memcpy(&flash_memory[OTA_WEBUSB_IMAGE_OFFSET + OTA_IMAGE_HEADER_SIZE],
+    memcpy(&flash_memory[TEST_IMAGE_OFFSET + OTA_IMAGE_HEADER_SIZE],
            payload, sizeof(payload));
 
     CHECK(ota_staging_validate_committed(
@@ -122,7 +127,7 @@ int main(void)
               &staging, &result_header, scratch, sizeof(scratch)) ==
           OTA_IMAGE_OK);
 
-    flash_memory[OTA_WEBUSB_IMAGE_OFFSET + OTA_IMAGE_HEADER_SIZE] ^= 1U;
+    flash_memory[TEST_IMAGE_OFFSET + OTA_IMAGE_HEADER_SIZE] ^= 1U;
     CHECK(ota_staging_validate_committed(
               &staging, NULL, scratch, sizeof(scratch)) ==
           OTA_IMAGE_INVALID_CRC);

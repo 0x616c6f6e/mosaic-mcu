@@ -116,7 +116,7 @@ static bool volume_size_matches_disk(void)
     if (sectors == 0U) {
         sectors = read_u32_le(&format_buffer[32]);
     }
-    return sectors == (OTA_MSC_FLASH_CAPACITY / OTA_DISK_SECTOR_SIZE);
+    return sectors == (update_disk.size / OTA_DISK_SECTOR_SIZE);
 }
 
 static FRESULT mount_update_volume(bool format_if_missing)

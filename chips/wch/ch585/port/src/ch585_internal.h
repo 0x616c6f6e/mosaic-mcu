@@ -8,6 +8,11 @@
 #include <chip_status.h>
 #include <chip_time.h>
 
+/** @brief Capture a timeout origin after verifying the time service is ready.
+ * @param timeout_us Timeout in microseconds or a CHIP_TIMEOUT_* sentinel.
+ * @param[out] started_at Receives the monotonic start time in microseconds.
+ * @return CHIP_OK on success, or CHIP_ERROR_INVALID_ARG/NOT_READY.
+ */
 static inline chip_status_t ch585_timeout_start(uint32_t timeout_us, uint64_t *started_at)
 {
     if (started_at == NULL) {
@@ -23,6 +28,11 @@ static inline chip_status_t ch585_timeout_start(uint32_t timeout_us, uint64_t *s
     return CHIP_OK;
 }
 
+/** @brief Check elapsed time against a requested timeout.
+ * @param started_at Time captured by ch585_timeout_start().
+ * @param timeout_us Timeout in microseconds; FOREVER never expires.
+ * @return true when the timeout has elapsed.
+ */
 static inline bool ch585_timeout_expired(uint64_t started_at, uint32_t timeout_us)
 {
     if (timeout_us == CHIP_TIMEOUT_FOREVER) {

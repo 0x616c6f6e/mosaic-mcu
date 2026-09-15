@@ -153,7 +153,7 @@ bool keyboard_layout_init(void)
         .row_count = ROW_COUNT,
         .column_pins = column_pins,
         .column_count = COLUMN_COUNT,
-        .active_level = false,
+        .active_level = true,
         .settle_time_us = 5U,
     };
     const chip_gpio_config_t right_alt_config = {

@@ -75,16 +75,17 @@ row-major order: `index = row * column_count + column`.
   C5, then Left, Down, Right at C6-C8; C9-C13 are unused.
 - Direct key: PB22 with a 3.3 V pull-up, active low, mapped to Right Alt.
 
-Rows are pulled up; inactive columns are high impedance and the active column
-is driven low.
+Columns are pulled down; inactive rows are driven low and the active row is
+driven high. This matches the hardware path `ROW -> diode -> switch -> COL`.
+During initialization the columns are first driven low, then changed to
+pull-down inputs after a short settling delay to clear residual charge.
 
 To adapt the matrix, edit `row_pins`, `column_pins`, `ROW_COUNT`,
 `COLUMN_COUNT`, and the row-major `bindings` array in
 `application/keyboard_layout.c`. Keep the matrix plus direct-key count at or
-below `KEYBOARD_ENGINE_MAX_KEYS` (currently 80). The active-low example requires
-switch/diode orientation that allows a pulled-up row to be pulled down through
-the selected column. PB22 is polled as a separate 71st key and uses the same
-five-scan debounce path as matrix keys; no GPIO interrupt is enabled.
+below `KEYBOARD_ENGINE_MAX_KEYS` (currently 80). PB22 is polled as a separate
+active-low 71st key and uses the same five-scan debounce path as matrix keys;
+no GPIO interrupt is enabled.
 
 ## Build and first installation
 
